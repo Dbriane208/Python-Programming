@@ -2,7 +2,7 @@
 import requests
 
 #Ap key and base url
-API_KEY = "09e4b080acb40b8de56323d29705d4fc"
+API_KEY = "your api key"
 BASE_URL = "http://api.openweathermap.org/data/2.5/weather"
 
 # Getting the city we want information about
