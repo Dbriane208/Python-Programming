@@ -119,13 +119,18 @@ class Items(Resource):
         all_query = "SELECT * FROM items"
         result = cursor.execute(all_query)
         rows = result.fetchall()
+
+        items = []
         
         if rows:
             try:
-               return {'items' : rows}, 200
+                for row in rows:
+                   items.append({'name': row[0],'price':row[1]})
+                   connection.close()   
+                return {'items' : items}, 200
             except:
                 return {"message":"An error occurred inserting the item"} , 500
 
-        connection.close()    
+         
       
 
