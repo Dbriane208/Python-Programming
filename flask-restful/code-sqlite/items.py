@@ -125,5 +125,7 @@ class Items(Resource):
                return {'items' : rows}, 200
             except:
                 return {"message":"An error occurred inserting the item"} , 500
+
+        connection.close()    
       
 
