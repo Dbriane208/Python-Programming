@@ -53,7 +53,7 @@ class Item(Resource):
 
         return item, 201
     
-    
+
     @classmethod
     def insert(cls,item):
         # create a connection to insert to the database
@@ -80,21 +80,50 @@ class Item(Resource):
         connection.close()
 
         return {'item': 'item {} deleted'.format(name)}
-    
+
     def put(self,name):
-        # getting the price that we declared in postman
-        data = Item.parser.parse_args()
-        # getting the item we want to update
-        updateItem = next(filter(lambda item: item['name'] == name,items),None)
-        if updateItem is None:
-            updateItem = {'name': name,'price': data['price']}
-            items.append(updateItem)
+        data = self.parser.parse_args()
+        item = self.find_by_name(name)
+        updated_item = {'name': name,'price': data['price']}  
+
+        if item is None:
+            try:
+                self.insert(updated_item)
+            except:
+                return {"message":"An error occurred inserting the item"} , 500
         else:
-            # using the dictionary method update to update the item
-            updateItem.update(data)
-        return updateItem    
+            try:
+                self.update(updated_item)
+            except:
+               return {"message":"An error occurred inserting the item"} , 500
+        return updated_item  
+
+    @classmethod
+    def update(cls,item):
+        connection = sqlite3.connect('data.db')
+        cursor = connection.cursor()
+
+        query = "UPDATE items SET price =? WHERE name=?"
+        cursor.execute(query,(item['price'],item['name']))
+
+        connection.commit()
+        connection.close()
+
 
     
 class Items(Resource):
     def get(self):
-        return {'items' : items}, 200
+        connection = sqlite3.connect('data.db')
+        cursor = connection.cursor()
+
+        all_query = "SELECT * FROM items"
+        result = cursor.execute(all_query)
+        rows = result.fetchall()
+        
+        if rows:
+            try:
+               return {'items' : rows}, 200
+            except:
+                return {"message":"An error occurred inserting the item"} , 500
+      
+
