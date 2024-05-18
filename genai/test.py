@@ -1,8 +1,6 @@
 import requests
 import openai
 
-openai.api_key = "sk-proj-Z88MJ5hAhW0u9lnJB0XuT3BlbkFJSYylHd7iAdwFDDvohNvX"
-
 messages = [
     {"role": "system","content":"You generate messages for the given context randomly"}
 ]
