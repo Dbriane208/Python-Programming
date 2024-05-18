@@ -2,6 +2,7 @@ from flask import request
 from flask_restful import Resource
 from flask_jwt import jwt_required
 
+
 #create the database
 menus = []
 

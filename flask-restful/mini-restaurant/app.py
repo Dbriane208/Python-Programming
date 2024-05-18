@@ -3,6 +3,7 @@ from flask_jwt import JWT
 from flask_restful import Api
 
 from security import authenticate,identity
+from user import UserRegister
 
 from order import Order, Orders
 from food import Food,Foods
@@ -13,6 +14,7 @@ app = Flask(__name__)
 app.secret_key = 'mini-restaurant'
 api = Api(app) 
 
+# represents the auth endpoint => /auth
 jwt = JWT(app,authenticate,identity)
 
 # orders endpoints
@@ -31,6 +33,11 @@ api.add_resource(Menus,'/v1/menus')
 api.add_resource(Recipe,'/v1/recipe/<string:name>')
 api.add_resource(Recipes,'/v1/recipes')
 
-app.run(port=5000,debug=True)    
+# auth endpoint
+api.add_resource(UserRegister,'/v1/register')
+
+# preventing the app from running from another file if app was imported
+if __name__ == '__main__':
+  app.run(port=5000,debug=True)   
 
         

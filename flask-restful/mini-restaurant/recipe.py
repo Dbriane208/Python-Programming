@@ -22,8 +22,7 @@ class Recipe(Resource):
         recipeItem = {
             'name': name,
             'ingredients': data['ingredients'],
-            'amount': data['amount'],
-            'message': data['message']
+            'amount': data['amount']
         } 
         recipes.append(recipeItem)
         return recipeItem, 201  

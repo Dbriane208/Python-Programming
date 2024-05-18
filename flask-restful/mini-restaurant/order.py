@@ -20,8 +20,7 @@ class Order(Resource):
             'name': name,
             'description': data['description'],
             'amount': data['amount'],
-            'price': data['price'],
-            'message': data['message']
+            'price': data['price']
         }   
         orders.append(order)
         return order, 201 # order created
