@@ -1,57 +1,158 @@
+import sqlite3
 from flask import request
-from flask_restful import Resource
+from flask_restful import Resource,reqparse
 from flask_jwt import jwt_required
 
 
-#create the database
-menus = []
-
 class Menu(Resource):
+    parser = reqparse.RequestParser()
+    parser.add_argument('category',
+        type=str,
+        required=True,
+        help="This field cannot be blank")
+    
+    parser.add_argument('price',
+        type=float,
+        required=True,
+        help="This field cannot be blank")
+    
     @jwt_required()
     def get(self,name):
-        menu_item = next(filter(lambda menu: menu['name'] == name,menus),None)
+        menu_item = Menu.find_by_name(name=name)
         if menu_item is None:
             return {'message': 'menu item {} does not exist.'.format(name)}, 404
         else:
             return {'menu item': menu_item},200
+
+    @classmethod
+    def find_by_name(cls,name):
+        # Establish a connection
+        connection = sqlite3.connect('restaurant.db')
+        cursor = connection.cursor() 
+
+        # query the results
+        query = "SELECT * FROM menus WHERE name=?"
+        result = cursor.execute(query,(name,)) 
+        row = result.fetchone()
+
+        # close the connection
+        connection.close()
+
+        # response
+        if row:
+            return {
+                'id':row[0],
+                'name': row[1],
+                'category': row[2],
+                'price': row[3]
+            }
            
         
     def post(self,name):
-        if next(filter(lambda food: food['name'] == name,menus),None):
-            return {'message': 'menu item {} already exists'.format(name)}
+        if Menu.find_by_name(name=name):
+            return {'message': 'A menu item with the name {} already exists'.format(name)}
         
-        data = request.get_json()
+        data = Menu.parser.parse_args()
         updMenu = {
             'name': name,
-            'type': data['type'],
+            'category': data['category'],
             'price': data['price']
         }
-        menus.append(updMenu)
+      
+        # try:
+        self.insert(updMenu=updMenu)
+        # except:
+            # return {"message": "An error occurred posting the item"}, 500
+              
         return updMenu, 201
+    
+    @classmethod
+    def insert(cls,updMenu):
+        connection = sqlite3.connect('restaurant.db')
+        cursor = connection.cursor()
+
+        query = "INSERT INTO menus(name,category,price) VALUES(?,?,?)"
+        cursor.execute(query,(
+            updMenu['name'],
+            updMenu['category'],
+            updMenu['price']
+        ))
    
+        connection.commit()
+        connection.close()
+    
     def delete(self,name):
-        global menus
-        menus = list(filter(lambda menu: menu['name'] != name, menus))
-        if menus:
-            return {'message': 'menu item {} deleted successfully.'.format(name)}, 200
-        else:
-          return {'message': 'menu item {} does not exist.'.format(name)}, 404
+        # Establish the connection
+        connection = sqlite3.connect('restaurant.db')
+        cursor = connection.cursor()
+
+        # query result
+        query = "DELETE FROM menus WHERE name=?"
+        cursor.execute(query,(name,))
+
+        # close the connection
+        connection.commit()
+        connection.close()
+
+        return {'message': 'menu item {} deleted successfully.'.format(name)}, 200
 
     def put(self,name): 
-        data = request.get_json()
-        updMenu = next(filter(lambda menu: menu['name'] == name,menus),None)
-        if updMenu is None:
-            updMenu = {
-                'category': name,
-                'price': data['price'],
-                'name': data['name'],
-                'message': data['message']
-            }  
-            menus.append(updMenu)
+        data = Menu.parser.parse_args()
+        update_menu = Menu.find_by_name(name=name)
+        updMenu = {
+                'name':name,
+                'category': data['category'],
+                'price': data['price']
+            } 
+        
+        if update_menu is None:
+            try:
+                self.insert(updMenu=updMenu)
+            except:
+                return {"message":"An error occurred inserting the item"}, 500    
         else:
-            updMenu.update(data)
+            try:
+                self.update(updMenu=updMenu)
+            except:
+                return {"message":"An error occurred updating the item"}, 500
+                
         return updMenu, 200
+    
+    @classmethod
+    def update(cls,updMenu):
+        connection = sqlite3.connect('restaurant.db')
+        cursor = connection.cursor()
+
+        query = "UPDATE menus SET category=?, price=? WHERE name=?"
+        cursor.execute(query,(
+            updMenu['category'],
+            updMenu['price'],
+            updMenu['name']
+        ))
+
+        connection.commit()
+        connection.close()
         
 class Menus(Resource):
     def get(self):
-        return {'menus': menus}, 200        
+        connection = sqlite3.connect('restaurant.db')
+        cursor = connection.cursor()
+
+        query = "SELECT * FROM menus"
+        result = cursor.execute(query)
+        rows = result.fetchall()
+
+        menus = []
+        if rows:
+            try:
+                for row in rows:
+                    menus.append({
+                        'id':row[0],
+                        'name':row[1],
+                        'category': row[2],
+                        'price': row[3]
+                    })
+                    connection.close()
+                return {'menus': menus}, 200    
+            except:
+                return {"message":"An error occurred retrieving the menus"}, 500    
