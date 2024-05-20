@@ -63,8 +63,8 @@ class Food(Resource):
 
         try:
           self.insert(foodItem)
-        except:
-            return {"message": "An error occurred posting the item"}, 500
+        except sqlite3.Error as e:
+            return {"message": "Error {} occurred while posting the item".format(str(e))}, 500
           
         return foodItem, 201
     
@@ -118,13 +118,13 @@ class Food(Resource):
         if food_item is None:
             try:
                 self.insert(updateFood)
-            except:
-                return {"message":"An error occurred inserting the item"}, 500    
+            except sqlite3.Error as e:
+                return {"message":"Error {} occurred inserting the item".format(str(e))}, 500    
         else:
             try:    
                 self.update(updateFood)
-            except:
-                return {"message":"An error occurred updating the item"}, 500
+            except sqlite3.Error as e:
+                return {"message":"Error {} occurred updating the item".format(str(e))}, 500
         return updateFood, 200
     
     @classmethod
@@ -169,6 +169,6 @@ class Foods(Resource):
                     })
                     connection.close()
                 return {'foods': foods}, 200
-            except:
-                return {"message":"An error occurred retrieving the foods"}, 500          
+            except sqlite3.Error as e:
+                return {"message":"Error {} occurred retrieving the foods".format(str(e))}, 500          
 

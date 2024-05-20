@@ -5,6 +5,7 @@ from flask_jwt import jwt_required
 
 
 class Menu(Resource):
+    
     parser = reqparse.RequestParser()
     parser.add_argument('category',
         type=str,
@@ -59,10 +60,10 @@ class Menu(Resource):
             'price': data['price']
         }
       
-        # try:
-        self.insert(updMenu=updMenu)
-        # except:
-            # return {"message": "An error occurred posting the item"}, 500
+        try:
+            self.insert(updMenu=updMenu)
+        except sqlite3.Error as e:
+            return {"message": "Error {} occurred while posting the item".format(str(e))}, 500
               
         return updMenu, 201
     
@@ -108,13 +109,13 @@ class Menu(Resource):
         if update_menu is None:
             try:
                 self.insert(updMenu=updMenu)
-            except:
-                return {"message":"An error occurred inserting the item"}, 500    
+            except sqlite3.Error as e:
+                return {"message":"Error {} occurred while inserting the item".format(str(e))}, 500    
         else:
             try:
                 self.update(updMenu=updMenu)
-            except:
-                return {"message":"An error occurred updating the item"}, 500
+            except sqlite3.Error as e:
+                return {"message":"Error {} occurred while updating the item".format(str(e))}, 500
                 
         return updMenu, 200
     
@@ -154,5 +155,5 @@ class Menus(Resource):
                     })
                     connection.close()
                 return {'menus': menus}, 200    
-            except:
-                return {"message":"An error occurred retrieving the menus"}, 500    
+            except sqlite3.Error as e:
+                return {"message":"Error {} occurred while retrieving the menus".format(str(e))}, 500    

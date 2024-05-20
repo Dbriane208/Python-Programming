@@ -21,7 +21,7 @@ create_table_order = "CREATE TABLE IF NOT EXISTS orders(id INTEGER PRIMARY KEY, 
 cursor.execute(create_table_order)
 
 # create table for recipe
-create_table_recipe = "CREATE TABLE IF NOT EXISTS recipes(id INTEGER PRIMARY KEY, name text,ingredient text,amount text)"
+create_table_recipe = "CREATE TABLE IF NOT EXISTS recipes(id INTEGER PRIMARY KEY, name text,ingredients text,amount text)"
 cursor.execute(create_table_recipe)
 
 # close the connecton
