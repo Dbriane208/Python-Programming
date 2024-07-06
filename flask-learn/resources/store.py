@@ -1,6 +1,9 @@
 from flask.views import MethodView
-from flask_smorest import Blueprint
+from flask_smorest import Blueprint,abort
+from sqlalchemy.exc import SQLAlchemyError,IntegrityError
 
+from db import db
+from models import StoreModel
 from schema import StoresSchema,ItemSchema
 
 
@@ -26,4 +29,26 @@ class StoreList(MethodView):
     @blp.arguments(StoresSchema)
     @blp.response(201, StoresSchema)
     def post(self, store_data):
-        raise NotImplementedError("Creating a store is not implemented.")
+        """
+        Converting data types from post method into key-value pairs
+        """
+        store = StoreModel(**store_data)
+
+        try:
+            db.session.add(store)
+            db.session.commit()
+
+        except IntegrityError:  
+            abort(
+                400,
+                message="A store with that name already exists"
+            )  
+
+        except SQLAlchemyError:
+            abort(
+                500,
+                message="An error occurred creating item store"
+            )
+
+        return store        
+        
